@@ -164,13 +164,7 @@ tests({
   },
 
   'It should not invoke for indexes that are not assigned': function () {
-    var bigEmptyArray = Array(1000);
-    for (var i = 0; i < aLongerValidArray.length; i++) {
-      bigEmptyArray[i] = aLongerValidArray[i];
-    } 
-    
-    assert(compareArrays(filter(bigEmptyArray, returnTrue), aLongerValidArray));
-
+    assert(compareArrays(filter(aValidArrayWithEmpties, returnTrue), aValidArrayWithOutEmpties));
   },
 
   'It should return a new array, not the original array': function () {
