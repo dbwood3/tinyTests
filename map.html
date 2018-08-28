@@ -25,13 +25,7 @@ function map (arr, callback, optionalThisObject) {
 }
 
 function compareArrays (array1, array2) {
-  //check to see if there are two arrays
-
-  if (!Array.isArray(array1) || !Array.isArray(array2)) {
-    return false
-  }
-  
-  //check to see if their lengths are the same
+  //check to see if they are arrays and their lengths are the same
   if (array1.length != array2.length) {
     return false
   }
@@ -47,16 +41,15 @@ function compareArrays (array1, array2) {
   return true;
 }
 
+//test case variables
 var notAnArray = 'I am not an array!';
 var aValidArray = [1,2,3];
-
 var aValidArrayWithEmpties = Array(50);
 var aValidArrayWithOutEmpties = [];
 for (i = 3; i < 27; i++) {
   aValidArrayWithEmpties[i]=i;
   aValidArrayWithOutEmpties.push(i);
 }
-console.log(aValidArrayWithOutEmpties,aValidArrayWithEmpties);
 
 var emptyArray = [];
 var aLongerValidArray = [1,2,3,4];
@@ -113,18 +106,18 @@ tests({
   'It should not mutate the array on which it is called': function() {
     var safeKeepingArray = aValidArray.slice();
     var result = map(aValidArray, Math.sqrt);
-    assert(compareArrays(safeKeepingArray, aValidArray), 'returnTruePass');
+    assert(compareArrays(safeKeepingArray, aValidArray), 'square root pass');
     
-    result = filter (aValidArray, function (value) {
+    result = map(aValidArray, function (value) {
       return value * 10;
     });
-    assert(compareArrays(safeKeepingArray, aValidArray), 'returnFalsePass');
+    assert(compareArrays(safeKeepingArray, aValidArray), 'multiply by 10 pass');
   },
 
   'It should call the provided callback function once for each element in the array that are not undefined': function() {
     var numberOfTimesCallbackHasRun = 0;
 
-    filter(aValidArrayWithEmpties, function () {
+    map(aValidArrayWithEmpties, function () {
       numberOfTimesCallbackHasRun++;
     });
 
@@ -152,6 +145,16 @@ tests({
 
   'It should return a new array, not the original array': function () {
     assert(aValidArray != map(aValidArray, Math.sqrt));
+  },
+
+  'It should actually map things': function () {
+    var numbers = [1, 4, 9];
+    var doubles = numbers.map(function(num) {
+      return num * 2;
+    });
+    var answers = [2, 8, 18];
+
+    assert(compareArrays(doubles, answers));
   }
 });
 </script>
