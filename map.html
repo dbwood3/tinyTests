@@ -4,7 +4,7 @@
 
   //element, index, array, callback
 
-function filter (arr, callback, optionalThisObject) {
+function map (arr, callback, optionalThisObject) {
   //check to make sure arr is an array
   if (!Array.isArray(arr)) {
     console.log('Object passed is not an array');
@@ -16,18 +16,16 @@ function filter (arr, callback, optionalThisObject) {
   var array = arr;
 
   for (var index = 0; index < array.length; index++) {
-    element = arr[index];
-    if (element) {
-      if (filterCallback(element, index, array)) {
-      returnArray.push(element)
-      }
+    currentValue = arr[index];
+    if (currentValue != undefined) {
+      returnArray.push(filterCallback(currentValue, index, array));
     }
   }
   return returnArray;
 }
 
 function compareArrays (array1, array2) {
-//check to see if array lengths are the same
+  //check to see if they are arrays and their lengths are the same
   if (array1.length != array2.length) {
     return false
   }
@@ -43,18 +41,9 @@ function compareArrays (array1, array2) {
   return true;
 }
 
-function returnTrue () {
-  return true;
-}
-
-function returnFalse () {
-  return false;
-}
-
-//test variables
+//test case variables
 var notAnArray = 'I am not an array!';
 var aValidArray = [1,2,3];
-
 var aValidArrayWithEmpties = Array(50);
 var aValidArrayWithOutEmpties = [];
 for (i = 3; i < 27; i++) {
@@ -65,6 +54,12 @@ for (i = 3; i < 27; i++) {
 var emptyArray = [];
 var aLongerValidArray = [1,2,3,4];
 
+//It should not mutate the array on which it is called
+//It should call the provided callback function once for each element in the array
+//It should construct a new array of all of the values for which callback returns a truthy value
+//It should not invoke for index which have been deleted
+//It should not invoke for indexes that are not assigned.
+// 
 tests({
   'CompareArray should work': function () {
     assert(!compareArrays(notAnArray, aValidArray), 'First arguement not an array');
@@ -75,27 +70,27 @@ tests({
   },
 
   'It should check to make sure that arr is an array': function () {
-    assert(!filter(notAnArray, returnTrue), 'not an array test');
+    assert(!map(notAnArray, Math.sqrt), 'not an array test');
   },
 
   'It should pass each ith element as the first arguement to the callback.': function() {
     var index = 0;
 
-    filter(aLongerValidArray, function (number) {
+    map(aLongerValidArray, function (number) {
       eq(aLongerValidArray[index],number);
       index++;
     });
   },
 
   'It should pass in the ith position  as the second arguement to the callback.': function () {
-    filter([1], function (number, index) {
+    map([1], function (number, index) {
       eq(index,0);
     })
   },
 
   'It should pass in the orginal array as the third argument to the callback.': function () {
     var testArray = [1,2,3];
-    filter(testArray, function (number, index, originalArray){
+    map(testArray, function (number, index, originalArray){
       eq(originalArray, testArray);
     })
   },
@@ -103,40 +98,63 @@ tests({
   'It should accept an optional this object': function () {
     var goodText = 'I am a walrus';
 
-    filter([1], function () {
+    map([1], function () {
       eq(goodText, this.description, );
     }, {description: goodText});
   },
 
   'It should not mutate the array on which it is called': function() {
     var safeKeepingArray = aValidArray.slice();
-    var result = filter(aValidArray, returnTrue);
-    assert(compareArrays(safeKeepingArray, aValidArray), 'returnTruePass');
+    var result = map(aValidArray, Math.sqrt);
+    assert(compareArrays(safeKeepingArray, aValidArray), 'square root pass');
     
-    result = filter (aValidArray, returnFalse);
-    assert(compareArrays(safeKeepingArray, aValidArray), 'returnFalsePass');
+    result = map(aValidArray, function (value) {
+      return value * 10;
+    });
+    assert(compareArrays(safeKeepingArray, aValidArray), 'multiply by 10 pass');
   },
 
-  'It should call the provided callback function once for each element in the array that is not empty': function() {
+  'It should call the provided callback function once for each element in the array that are not undefined': function() {
     var numberOfTimesCallbackHasRun = 0;
 
-    filter(aValidArrayWithEmpties, function () {
+    map(aValidArrayWithEmpties, function () {
       numberOfTimesCallbackHasRun++;
     });
 
     eq(numberOfTimesCallbackHasRun, aValidArrayWithOutEmpties.length);
   },
-
-  'It should construct a new array of all of the truthy value': function () {
-    assert(compareArrays(aValidArray, filter(aValidArray, returnTrue)));
+  
+  'It should not invoke for index which have been deleted': function () {
+    var lastElement = aLongerValidArray.length - 1;
+    var splicedLVA = aLongerValidArray.slice();
+    var deletedLVA = aLongerValidArray.slice();
+    
+    delete deletedLVA[lastElement];
+    splicedLVA.splice(lastElement,1);
+  
+    assert(compareArrays(map(deletedLVA, function (value) {
+      return value * 1;
+    }),splicedLVA));
   },
 
-  'It should not invoke for indexes that are empty': function () {
-    assert(compareArrays(filter(aValidArrayWithEmpties, returnTrue), aValidArrayWithOutEmpties));
+  'It should not invoke for indexes that are not assigned': function () { 
+    assert(compareArrays(map(aValidArrayWithEmpties, function (value) {
+      return value;
+    }), aValidArrayWithOutEmpties));
   },
 
   'It should return a new array, not the original array': function () {
-    assert(aValidArray != filter(aValidArray,returnTrue));
+    assert(aValidArray != map(aValidArray, Math.sqrt));
+  },
+
+  'It should actually map things': function () {
+    var numbers = [1, 4, 9];
+    var doubles = numbers.map(function(num) {
+      return num * 2;
+    });
+    var answers = [2, 8, 18];
+
+    assert(compareArrays(doubles, answers));
   }
 });
 </script>
