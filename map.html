@@ -1,3 +1,6 @@
+<head></head>
+<body></body>
+
 <script src="../tinytest.js"></script>
 
 <script>
@@ -11,14 +14,15 @@ function map (arr, callback, optionalThisObject) {
     return false;
   }
   
-  var filterCallback = optionalThisObject ? callback.bind(optionalThisObject): callback;
-  var returnArray = [];
-  var array = arr;
+  var filterCallback = callback;
+  if (optionalThisObject) {
+    filterCallback = callback.bind(optionalThisObject)
+  }
+  var returnArray = Array(arr.length);
 
-  for (var index = 0; index < array.length; index++) {
-    currentValue = arr[index];
-    if (currentValue != undefined) {
-      returnArray.push(filterCallback(currentValue, index, array));
+  for (var index = 0; index < arr.length; index++) {
+    if (arr[index]) {
+      returnArray[index] = filterCallback(arr[index], index, arr)
     }
   }
   return returnArray;
@@ -123,24 +127,11 @@ tests({
 
     eq(numberOfTimesCallbackHasRun, aValidArrayWithOutEmpties.length);
   },
-  
-  'It should not invoke for index which have been deleted': function () {
-    var lastElement = aLongerValidArray.length - 1;
-    var splicedLVA = aLongerValidArray.slice();
-    var deletedLVA = aLongerValidArray.slice();
-    
-    delete deletedLVA[lastElement];
-    splicedLVA.splice(lastElement,1);
-  
-    assert(compareArrays(map(deletedLVA, function (value) {
-      return value * 1;
-    }),splicedLVA));
-  },
 
   'It should not invoke for indexes that are not assigned': function () { 
     assert(compareArrays(map(aValidArrayWithEmpties, function (value) {
       return value;
-    }), aValidArrayWithOutEmpties));
+    }), aValidArrayWithEmpties));
   },
 
   'It should return a new array, not the original array': function () {
